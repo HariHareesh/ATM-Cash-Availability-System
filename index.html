@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATM Locator - Find Nearby ATMs with Live Updates</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --secondary: #8b5cf6;
+            --accent: #ec4899;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f9fafb;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #1f2937, #0f172a, #1e3a8a, #312e81);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin: 20px 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #7c3aed;
+        }
+
+        .btn-small {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            margin: 5px;
+        }
+
+        .atm-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .atm-item {
+            background: linear-gradient(135deg, #f0f9ff, #f5f3ff);
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-left: 5px solid var(--primary);
+        }
+
+        .atm-item:hover {
+            transform: translateX(5px);
+            border-left-color: var(--accent);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .atm-item.selected {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, #fce7f3, #fdf2f8);
+        }
+
+        .atm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .atm-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .atm-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-available {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .status-low {
+            background: #fef3c7;
+            color: var(--warning);
+        }
+
+        .status-empty {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .atm-info {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin: 8px 0;
+        }
+
+        .atm-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.75rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .status-online {
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-offline {
+            background: var(--danger);
+        }
+
+        .cash-bar {
+            width: 100%;
+            height: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .cash-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #1e40af;
+        }
+
+        .success-message {
+            background: #d1fae5;
+            border-left: 4px solid var(--success);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #065f46;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            border-left: 4px solid var(--danger);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            color: #7f1d1d;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #f0f9ff, #f5f3ff);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .logout-btn {
+            width: auto;
+            padding: 8px 16px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(59, 130, 246, 0.3);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .live-update {
+            animation: pulse 1s infinite;
+        }
+
+        .time-stamp {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-top: 10px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin: 5px 5px 5px 0;
+        }
+
+        .badge-distance {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOGIN PAGE -->
+        <div id="loginPage" class="page active">
+            <div class="card">
+                <div class="header">
+                    <h1>🏧 ATM Locator</h1>
+                    <p>Find nearby ATMs with live cash availability</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" value="user">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" placeholder="Enter your password" value="pass">
+                </div>
+
+                <button class="btn-primary" onclick="handleLogin()">Login</button>
+
+                <div class="info-box" style="margin-top: 20px;">
+                    <strong>Demo Credentials:</strong><br>
+                    Username: user<br>
+                    Password: pass
+                </div>
+            </div>
+        </div>
+
+        <!-- SEARCH PAGE -->
+        <div id="searchPage" class="page">
+            <div class="card">
+                <div class="user-info">
+                    <span class="user-name">👤 <span id="displayUsername"></span></span>
+                    <button class="logout-btn btn-small" onclick="handleLogout()">Logout</button>
+                </div>
+
+                <div class="header">
+                    <h1>📍 Search Nearby ATMs</h1>
+                    <p>Enter your location to find nearby ATMs</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="latitude">Latitude</label>
+                    <input type="number" id="latitude" placeholder="e.g., 40.7128" value="40.7128" step="0.0001">
+                </div>
+
+                <div class="form-group">
+                    <label for="longitude">Longitude</label>
+                    <input type="number" id="longitude" placeholder="e.g., -74.0060" value="-74.0060" step="0.0001">
+                </div>
+
+                <div class="form-group">
+                    <label for="radius">Search Radius (km)</label>
+                    <input type="number" id="radius" placeholder="e.g., 10" value="10" min="1">
+                </div>
+
+                <button class="btn-primary" onclick="handleSearch()">Search Nearby ATMs</button>
+                <button class="btn-secondary btn-small" onclick="useCurrentLocation()">Use Current Location</button>
+            </div>
+        </div>
+
+        <!-- RESULTS PAGE -->
+        <div id="resultsPage" class="page">
+            <div class="card">
+                <div class="user-info">
+                    <span class="user-name">👤 <span id="displayUsername2"></span></span>
+                    <button class="logout-btn btn-small" onclick="handleLogout()">Logout</button>
+                </div>
+
+                <div class="header">
+                    <h1>🔍 ATM Search Results</h1>
+                    <p id="resultCount"></p>
+                </div>
+
+                <button class="btn-secondary btn-small" onclick="goToSearch()">← Back to Search</button>
+
+                <div id="atmResults" class="atm-list"></div>
+            </div>
+        </div>
+
+        <!-- ATM STATUS PAGE -->
+        <div id="statusPage" class="page">
+            <div class="card">
+                <div class="user-info">
+                    <span class="user-name">👤 <span id="displayUsername3"></span></span>
+                    <button class="logout-btn btn-small" onclick="handleLogout()">Logout</button>
+                </div>
+
+                <button class="btn-secondary btn-small" onclick="goToResults()">← Back to Results</button>
+
+                <div class="header">
+                    <h1 id="atmStatusTitle">ATM Status</h1>
+                    <p>Live Cash Availability Tracking</p>
+                </div>
+
+                <div id="statusContent"></div>
+
+                <button class="btn-primary" style="margin-top: 20px;" onclick="toggleLiveUpdate()">
+                    <span id="liveToggleText">🔴 Start Live Update</span>
+                </button>
+
+                <div id="liveUpdateContainer" style="display:none; margin-top: 20px;">
+                    <div class="info-box">
+                        <strong>📊 Live Updates Running</strong><br>
+                        ⏰ Current Time: <span id="currentTime">--:--:--</span><br>
+                        Refreshing every 60 seconds...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ STATE MANAGEMENT ============
+        let currentUser = null;
+        let currentToken = null;
+        let selectedATM = null;
+        let liveUpdateInterval = null;
+        let isLiveUpdating = false;
+
+        // ============ PAGE NAVIGATION ============
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        // ============ LOGIN ============
+        async function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                alert('Please enter username and password');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentUser = username;
+                    currentToken = data.token;
+                    document.getElementById('displayUsername').textContent = username;
+                    document.getElementById('displayUsername2').textContent = username;
+                    document.getElementById('displayUsername3').textContent = username;
+                    showPage('searchPage');
+                } else {
+                    alert('Login failed');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // ============ LOGOUT ============
+        function handleLogout() {
+            if (liveUpdateInterval) {
+                clearInterval(liveUpdateInterval);
+                liveUpdateInterval = null;
+            }
+            if (window.timeUpdateInterval) {
+                clearInterval(window.timeUpdateInterval);
+                window.timeUpdateInterval = null;
+            }
+            isLiveUpdating = false;
+            currentUser = null;
+            currentToken = null;
+            selectedATM = null;
+            document.getElementById('username').value = 'user';
+            document.getElementById('password').value = 'pass';
+            showPage('loginPage');
+        }
+
+        // ============ SEARCH NEARBY ATMs ============
+        async function handleSearch() {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lng = parseFloat(document.getElementById('longitude').value);
+            const radius = parseInt(document.getElementById('radius').value);
+
+            if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
+                alert('Please enter valid coordinates and radius');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/api/search-nearby', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat, lng, radiusKm: radius })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data.atms);
+                    showPage('resultsPage');
+                } else {
+                    alert('Search failed');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // ============ DISPLAY SEARCH RESULTS ============
+        function displayResults(atms) {
+            const resultsContainer = document.getElementById('atmResults');
+            const resultCount = document.getElementById('resultCount');
+
+            resultCount.textContent = `Found ${atms.length} ATM${atms.length !== 1 ? 's' : ''}`;
+
+            if (atms.length === 0) {
+                resultsContainer.innerHTML = '<div class="error-message">No ATMs found in this radius</div>';
+                return;
+            }
+
+            resultsContainer.innerHTML = atms.map(atm => `
+                <div class="atm-item" onclick="selectATM(${atm.id}, '${atm.name}')">
+                    <div class="atm-header">
+                        <span class="atm-name">${atm.name}</span>
+                        <span class="atm-status status-${getStatusClass(atm.status)}">
+                            <span class="status-indicator status-online"></span>${atm.status}
+                        </span>
+                    </div>
+                    <div class="atm-info">📍 ${atm.address}</div>
+                    <div class="atm-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Cash Available</span>
+                            <span class="detail-value">₹${atm.cash.toLocaleString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Distance</span>
+                            <span class="detail-value">${atm.distance} km</span>
+                        </div>
+                    </div>
+                    <div class="cash-bar">
+                        <div class="cash-fill" style="width: ${Math.min(100, (atm.cash / 150000) * 100)}%">
+                            ${atm.cash > 0 ? Math.round((atm.cash / 150000) * 100) + '%' : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============ SELECT ATM FOR STATUS VIEW ============
+        function selectATM(atmId, atmName) {
+            selectedATM = atmId;
+            showATMStatus();
+            showPage('statusPage');
+        }
+
+        // ============ SHOW ATM STATUS ============
+        async function showATMStatus() {
+            try {
+                const response = await fetch(`http://localhost:5000/api/atm/${selectedATM}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayATMStatus(data.atm);
+                    // Auto-start live updates every 60 seconds
+                    if (!isLiveUpdating) {
+                        isLiveUpdating = true;
+                        document.getElementById('liveToggleText').textContent = '🟢 Stop Live Update';
+                        document.getElementById('liveUpdateContainer').style.display = 'block';
+                        startLiveUpdate();
+                    }
+                } else {
+                    alert('Failed to fetch ATM status');
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // ============ DISPLAY ATM STATUS ============
+        function displayATMStatus(atm) {
+            document.getElementById('atmStatusTitle').textContent = atm.name;
+            
+            const statusContent = document.getElementById('statusContent');
+            const cashPercentage = Math.min(100, (atm.cash / 150000) * 100);
+            
+            statusContent.innerHTML = `
+                <div style="margin: 20px 0;">
+                    <div class="atm-header">
+                        <span style="font-size: 1.2rem; font-weight: 700; color: var(--dark);">${atm.address}</span>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="color: #6b7280; font-weight: 600;">Cash Availability</span>
+                            <span class="atm-status status-${getStatusClass(atm.status)}">
+                                <span class="status-indicator status-online"></span>${atm.status}
+                            </span>
+                        </div>
+                        <div class="cash-bar">
+                            <div class="cash-fill" style="width: ${cashPercentage}%">
+                                ${Math.round(cashPercentage)}%
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="atm-details" style="margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+                        <div class="detail-item">
+                            <span class="detail-label">Available Balance</span>
+                            <span class="detail-value" style="font-size: 1.3rem;">₹${atm.cash.toLocaleString()}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">ATM ID</span>
+                            <span class="detail-value">#${atm.id}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid-2" style="margin-top: 20px;">
+                        <div class="info-box">
+                            <strong>📊 Max Capacity</strong><br>
+                            ₹150,000
+                        </div>
+                        <div class="info-box">
+                            <strong>⏱️ Last Updated</strong><br>
+                            ${new Date(atm.lastUpdated).toLocaleTimeString()}
+                        </div>
+                    </div>
+
+                    <div id="liveStatusDisplay" style="margin-top: 20px;"></div>
+                </div>
+            `;
+        }
+
+        // ============ LIVE UPDATE TOGGLE ============
+        function toggleLiveUpdate() {
+            isLiveUpdating = !isLiveUpdating;
+            const liveToggleText = document.getElementById('liveToggleText');
+            const liveContainer = document.getElementById('liveUpdateContainer');
+
+            if (isLiveUpdating) {
+                liveToggleText.textContent = '🟢 Stop Live Update';
+                liveContainer.style.display = 'block';
+                startLiveUpdate();
+                startTimeUpdate();
+            } else {
+                liveToggleText.textContent = '🔴 Start Live Update';
+                liveContainer.style.display = 'none';
+                if (liveUpdateInterval) {
+                    clearInterval(liveUpdateInterval);
+                    liveUpdateInterval = null;
+                }
+                if (window.timeUpdateInterval) {
+                    clearInterval(window.timeUpdateInterval);
+                    window.timeUpdateInterval = null;
+                }
+            }
+        }
+
+        // ============ START LIVE UPDATE ============
+        function startLiveUpdate() {
+            // Initial update
+            updateATMStatus();
+
+            // Update every 60 seconds
+            liveUpdateInterval = setInterval(updateATMStatus, 60000);
+        }
+
+        // ============ START TIME UPDATE ============
+        function startTimeUpdate() {
+            // Update time immediately
+            updateCurrentTime();
+            
+            // Update time every second
+            window.timeUpdateInterval = setInterval(updateCurrentTime, 1000);
+        }
+
+        // ============ UPDATE CURRENT TIME ============
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
+            const timeDisplay = document.getElementById('currentTime');
+            if (timeDisplay) {
+                timeDisplay.textContent = timeStr;
+            }
+        }
+
+        // ============ UPDATE ATM STATUS (LIVE) ============
+        async function updateATMStatus() {
+            try {
+                const response = await fetch(`http://localhost:5000/api/atm/${selectedATM}/live`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const atm = data.atm;
+                    const cashPercentage = Math.min(100, (atm.cash / 150000) * 100);
+                    const now = new Date();
+                    
+                    const statusDisplay = document.getElementById('liveStatusDisplay');
+                    statusDisplay.innerHTML = `
+                        <div class="success-message" style="animation: pulse 1s infinite;">
+                            <strong>🔄 Live Status (Auto-refreshing every 60 seconds)</strong><br>
+                            💰 Current Balance: ₹${atm.cash.toLocaleString()}<br>
+                            <span class="time-stamp">Last updated: ${new Date(atm.lastUpdated).toLocaleTimeString()} | Current: ${now.toLocaleTimeString()}</span>
+                        </div>
+                    `;
+
+                    // Update the main status display
+                    const cashBar = document.querySelector('.cash-fill');
+                    if (cashBar) {
+                        cashBar.style.width = cashPercentage + '%';
+                        cashBar.textContent = Math.round(cashPercentage) + '%';
+                    }
+
+                    // Update status badge
+                    const statusBadges = document.querySelectorAll('.atm-status');
+                    if (statusBadges.length > 0) {
+                        statusBadges.forEach(badge => {
+                            badge.className = `atm-status status-${getStatusClass(atm.status)}`;
+                            badge.innerHTML = `
+                                <span class="status-indicator status-online"></span>${atm.status}
+                            `;
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Live update error:', error);
+            }
+        }
+
+        // ============ HELPER FUNCTIONS ============
+        function getStatusClass(status) {
+            if (status === 'Cash Available') return 'available';
+            if (status === 'Low Cash') return 'low';
+            return 'empty';
+        }
+
+        function goToSearch() {
+            if (liveUpdateInterval) {
+                clearInterval(liveUpdateInterval);
+                liveUpdateInterval = null;
+            }
+            if (window.timeUpdateInterval) {
+                clearInterval(window.timeUpdateInterval);
+                window.timeUpdateInterval = null;
+            }
+            isLiveUpdating = false;
+            document.getElementById('liveToggleText').textContent = '🔴 Start Live Update';
+            document.getElementById('liveUpdateContainer').style.display = 'none';
+            showPage('searchPage');
+        }
+
+        function goToResults() {
+            if (liveUpdateInterval) {
+                clearInterval(liveUpdateInterval);
+                liveUpdateInterval = null;
+            }
+            if (window.timeUpdateInterval) {
+                clearInterval(window.timeUpdateInterval);
+                window.timeUpdateInterval = null;
+            }
+            isLiveUpdating = false;
+            document.getElementById('liveToggleText').textContent = '🔴 Start Live Update';
+            document.getElementById('liveUpdateContainer').style.display = 'none';
+            showPage('resultsPage');
+        }
+
+        function useCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        document.getElementById('latitude').value = position.coords.latitude.toFixed(4);
+                        document.getElementById('longitude').value = position.coords.longitude.toFixed(4);
+                        alert('Location updated! Now click "Search Nearby ATMs"');
+                    },
+                    (error) => {
+                        alert('Location access denied. Using default location.');
+                    }
+                );
+            } else {
+                alert('Geolocation not supported');
+            }
+        }
+
+        // ============ INITIALIZATION ============
+        window.addEventListener('load', () => {
+            console.log('ATM Locator App Loaded');
+        });
+    </script>
+</body>
+</html>

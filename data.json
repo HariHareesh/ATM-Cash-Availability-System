@@ -1,0 +1,22 @@
+[
+  { "id": 1, "name": "ATM 1", "cash": 120000, "address": "123 Main Street, Downtown", "lat": 40.7128, "lng": -74.0060 },
+  { "id": 2, "name": "ATM 2", "cash": 30000, "address": "456 Park Avenue, City Center", "lat": 40.7589, "lng": -73.9851 },
+  { "id": 3, "name": "ATM 3", "cash": 0, "address": "789 Market Road, Commercial Area", "lat": 40.6895, "lng": -74.0447 },
+  { "id": 4, "name": "ATM 4", "cash": 85000, "address": "321 Business Plaza, Tech Park", "lat": 40.7614, "lng": -73.9776 },
+  { "id": 5, "name": "ATM 5", "cash": 45000, "address": "654 Shopping Mall, Retail Zone", "lat": 40.7489, "lng": -73.9680 },
+  { "id": 6, "name": "ATM 6", "cash": 150000, "address": "987 Bank Street, Financial District", "lat": 40.7074, "lng": -74.0113 },
+  { "id": 7, "name": "ATM 7", "cash": 25000, "address": "147 College Road, Education Hub", "lat": 40.8075, "lng": -73.9626 },
+  { "id": 8, "name": "ATM 8", "cash": 95000, "address": "258 Hospital Lane, Medical District", "lat": 40.7505, "lng": -73.9972 },
+  { "id": 9, "name": "ATM 9", "cash": 60000, "address": "369 Railway Station, Transport Hub", "lat": 40.7500, "lng": -73.9911 },
+  { "id": 10, "name": "ATM 10", "cash": 0, "address": "741 Airport Road, Aviation Area", "lat": 40.7709, "lng": -73.9740 },
+  { "id": 11, "name": "ATM 11", "cash": 110000, "address": "852 Restaurant Lane, Food Court", "lat": 40.7282, "lng": -73.7949 },
+  { "id": 12, "name": "ATM 12", "cash": 35000, "address": "963 Cinema Street, Entertainment Zone", "lat": 40.6501, "lng": -73.9496 },
+  { "id": 13, "name": "ATM 13", "cash": 75000, "address": "159 Sports Complex, Recreation Area", "lat": 40.6816, "lng": -73.9776 },
+  { "id": 14, "name": "ATM 14", "cash": 0, "address": "753 Museum Road, Cultural Hub", "lat": 40.7813, "lng": -73.9740 },
+  { "id": 15, "name": "ATM 15", "cash": 140000, "address": "486 Metro Station, Transit Point", "lat": 40.7549, "lng": -73.9840 },
+  { "id": 16, "name": "ATM 16", "cash": 48000, "address": "297 Community Center, Residential Area", "lat": 40.6432, "lng": -73.7822 },
+  { "id": 17, "name": "ATM 17", "cash": 90000, "address": "864 University Campus, Academic Zone", "lat": 40.8075, "lng": -73.9626 },
+  { "id": 18, "name": "ATM 18", "cash": 20000, "address": "531 Gas Station, Highway", "lat": 40.7489, "lng": -73.9680 },
+  { "id": 19, "name": "ATM 19", "cash": 165000, "address": "678 Corporate Tower, Business Hub", "lat": 40.7505, "lng": -73.9972 },
+  { "id": 20, "name": "ATM 20", "cash": 55000, "address": "420 Supermarket Plaza, Shopping District", "lat": 40.7282, "lng": -73.7949 }
+]
